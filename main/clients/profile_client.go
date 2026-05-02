@@ -1,0 +1,63 @@
+package clients
+
+import (
+	"fmt"
+	"log"
+	"net/http"
+	"time"
+
+	"github.com/go-resty/resty/v2"
+)
+
+type ProfileResponse struct {
+	ID       string `json:"id"`
+	FullName string `json:"fullName"`
+	Level    string `json:"level"`
+	Service  string `json:"service"`
+}
+
+type ProfileClient struct {
+	baseURL string
+	client  *resty.Client
+}
+
+func NewProfileClient(baseURL string) *ProfileClient {
+	client := resty.New().
+		SetBaseURL(baseURL).
+		SetTimeout(5*time.Second).
+		SetHeader("Accept", "application/json").
+		OnBeforeRequest(func(_ *resty.Client, req *resty.Request) error {
+			log.Printf("profile client request: %s %s", req.Method, req.URL)
+			return nil
+		}).
+		OnAfterResponse(func(_ *resty.Client, resp *resty.Response) error {
+			log.Printf("profile client response: status=%d", resp.StatusCode())
+			return nil
+		})
+
+	return &ProfileClient{
+		baseURL: baseURL,
+		client:  client,
+	}
+}
+
+func (pc *ProfileClient) GetProfileByID(id string) (*ProfileResponse, error) {
+	result := &ProfileResponse{}
+
+	resp, err := pc.client.R().
+		SetResult(result).
+		Get(fmt.Sprintf("/profile/%s", id))
+	if err != nil {
+		return nil, fmt.Errorf("request profile: %w", err)
+	}
+
+	if resp.IsError() {
+		return nil, fmt.Errorf("profile service returned status %d", resp.StatusCode())
+	}
+
+	if resp.StatusCode() != http.StatusOK {
+		return nil, fmt.Errorf("unexpected profile service status %d", resp.StatusCode())
+	}
+
+	return result, nil
+}

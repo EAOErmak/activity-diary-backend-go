@@ -17,6 +17,7 @@ func main() {
 
 	router.POST("/register", handlers.Register)
 	router.POST("/login", handlers.Login)
+	router.GET("/external-profile/:id", handlers.GetExternalProfile)
 
 	dictionary := router.Group("/dictionary-items")
 	dictionary.Use(handlers.AuthMiddleware())
