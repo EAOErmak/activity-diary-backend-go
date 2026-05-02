@@ -6,8 +6,12 @@ services:
     ports:
       - "8080:8080"
     depends_on:
-      - db
-      - profile-service
+      db:
+        condition: service_healthy
+      profile-service:
+        condition: service_started
+      migrate:
+        condition: service_completed_successfully
     environment:
       APP_PORT: "8080"
       DB_HOST: db
@@ -25,6 +29,35 @@ services:
       dockerfile: Dockerfile.profile
     ports:
       - "8081:8081"
+    depends_on:
+      db:
+        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
+    environment:
+      DB_HOST: db
+      DB_PORT: "5432"
+      DB_USER: postgres
+      DB_PASSWORD: postgres
+      DB_NAME: diary_db
+      DB_SSLMODE: disable
+
+  migrate:
+    image: migrate/migrate:v4.18.3
+    depends_on:
+      db:
+        condition: service_healthy
+    volumes:
+      - ./main/migrations:/migrations:ro
+    command:
+      [
+        "-path",
+        "/migrations",
+        "-database",
+        "postgres://postgres:postgres@db:5432/diary_db?sslmode=disable",
+        "up"
+      ]
+    restart: "no"
 
   db:
     image: postgres:15-alpine
@@ -34,6 +67,11 @@ services:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
       POSTGRES_DB: diary_db
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d diary_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
     volumes:
       - postgres_data:/var/lib/postgresql/data
 
