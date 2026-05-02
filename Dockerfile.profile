@@ -6,13 +6,15 @@ COPY go.mod go.sum ./
 RUN go mod download
 
 COPY . .
-RUN go build -o profile-service ./profile-service
+
+RUN mkdir -p /out
+RUN go build -o /out/profile-service ./profile-service
 
 FROM alpine:latest
 
 WORKDIR /app
 
-COPY --from=builder /app/profile-service ./profile-service
+COPY --from=builder /out/profile-service ./profile-service
 
 EXPOSE 8081
 
