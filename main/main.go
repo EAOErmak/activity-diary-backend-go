@@ -4,6 +4,8 @@ import (
 	"go-learn/main/database"
 	"go-learn/main/handlers"
 	"log"
+	"os"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 )
@@ -40,5 +42,12 @@ func main() {
 		diary.DELETE("/:id", handlers.DeleteDiaryEntry)
 	}
 
-	router.Run(":8080")
+	port := strings.TrimSpace(os.Getenv("APP_PORT"))
+	if port == "" {
+		port = "8080"
+	}
+
+	if err := router.Run(":" + port); err != nil {
+		log.Fatalf("main service failed: %v", err)
+	}
 }

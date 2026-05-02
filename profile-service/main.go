@@ -1,10 +1,9 @@
 package main
 
 import (
-	"encoding/json"
 	"log"
-	"net/http"
-	"strings"
+
+	"github.com/gin-gonic/gin"
 )
 
 type profileResponse struct {
@@ -15,29 +14,19 @@ type profileResponse struct {
 }
 
 func main() {
-	mux := http.NewServeMux()
-	mux.HandleFunc("/profile/", handleProfile)
-
-	server := &http.Server{
-		Addr:    ":8081",
-		Handler: mux,
-	}
+	router := gin.Default()
+	router.GET("/profile/:id", handleProfile)
 
 	log.Println("profile-service listening on :8081")
-	if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+	if err := router.Run(":8081"); err != nil {
 		log.Fatalf("profile-service failed: %v", err)
 	}
 }
 
-func handleProfile(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodGet {
-		http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
-		return
-	}
-
-	id := strings.TrimPrefix(r.URL.Path, "/profile/")
-	if id == "" || strings.Contains(id, "/") {
-		http.Error(w, "profile id is required", http.StatusBadRequest)
+func handleProfile(c *gin.Context) {
+	id := c.Param("id")
+	if id == "" {
+		c.JSON(400, gin.H{"error": "profile id is required"})
 		return
 	}
 
@@ -48,8 +37,5 @@ func handleProfile(w http.ResponseWriter, r *http.Request) {
 		Service:  "profile-service",
 	}
 
-	w.Header().Set("Content-Type", "application/json")
-	if err := json.NewEncoder(w).Encode(response); err != nil {
-		http.Error(w, "failed to encode response", http.StatusInternalServerError)
-	}
+	c.JSON(200, response)
 }

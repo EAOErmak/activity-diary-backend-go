@@ -1,0 +1,17 @@
+.git
+.gitignore
+.idea/
+.vscode/
+*.log
+logs/
+tmp/
+temp/
+*.tmp
+*.swp
+*.swo
+.env
+bin/
+build/
+dist/
+coverage/
+main/main.go.*

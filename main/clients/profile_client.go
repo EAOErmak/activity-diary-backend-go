@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"os"
+	"strings"
 	"time"
 
 	"github.com/go-resty/resty/v2"
@@ -17,8 +19,7 @@ type ProfileResponse struct {
 }
 
 type ProfileClient struct {
-	baseURL string
-	client  *resty.Client
+	client *resty.Client
 }
 
 func NewProfileClient(baseURL string) *ProfileClient {
@@ -36,9 +37,12 @@ func NewProfileClient(baseURL string) *ProfileClient {
 		})
 
 	return &ProfileClient{
-		baseURL: baseURL,
-		client:  client,
+		client: client,
 	}
+}
+
+func NewDefaultProfileClient() *ProfileClient {
+	return NewProfileClient(profileServiceURL())
 }
 
 func (pc *ProfileClient) GetProfileByID(id string) (*ProfileResponse, error) {
@@ -60,4 +64,13 @@ func (pc *ProfileClient) GetProfileByID(id string) (*ProfileResponse, error) {
 	}
 
 	return result, nil
+}
+
+func profileServiceURL() string {
+	baseURL := strings.TrimSpace(os.Getenv("PROFILE_SERVICE_URL"))
+	if baseURL == "" {
+		baseURL = "http://localhost:8081"
+	}
+
+	return baseURL
 }

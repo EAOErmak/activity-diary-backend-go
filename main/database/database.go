@@ -1,7 +1,9 @@
 package database
 
 import (
-	"errors"
+	"fmt"
+	"os"
+	"strings"
 
 	"go-learn/main/models"
 
@@ -12,11 +14,7 @@ import (
 var DB *gorm.DB
 
 func InitDB() error {
-	dsn := "host=localhost user=postgres password=postgres dbname=postgres port=5432 sslmode=disable"
-	if dsn == "" {
-		return errors.New("DATABASE_URL is not set")
-	}
-
+	dsn := databaseDSN()
 	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
 	if err != nil {
 		return err
@@ -38,6 +36,34 @@ func InitDB() error {
 
 	DB = db
 	return nil
+}
+
+func databaseDSN() string {
+	host := envOrDefault("DB_HOST", "localhost")
+	port := envOrDefault("DB_PORT", "5432")
+	user := envOrDefault("DB_USER", "postgres")
+	password := envOrDefault("DB_PASSWORD", "postgres")
+	name := envOrDefault("DB_NAME", "postgres")
+	sslMode := envOrDefault("DB_SSLMODE", "disable")
+
+	return fmt.Sprintf(
+		"host=%s user=%s password=%s dbname=%s port=%s sslmode=%s",
+		host,
+		user,
+		password,
+		name,
+		port,
+		sslMode,
+	)
+}
+
+func envOrDefault(key, fallback string) string {
+	value := strings.TrimSpace(os.Getenv(key))
+	if value == "" {
+		return fallback
+	}
+
+	return value
 }
 
 func dropLegacyIndexes(db *gorm.DB) error {

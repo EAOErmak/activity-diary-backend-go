@@ -8,7 +8,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-var profileClient = clients.NewProfileClient("http://localhost:8081")
+var profileClient = clients.NewDefaultProfileClient()
 
 func GetExternalProfile(c *gin.Context) {
 	profileID := c.Param("id")
