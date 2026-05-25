@@ -1,0 +1,61 @@
+package diary
+
+import (
+	"bytes"
+	"errors"
+	"net/http"
+	"net/http/httptest"
+	"testing"
+	"time"
+
+	"activitydiary/api/internal/common"
+
+	"github.com/gin-gonic/gin"
+	"github.com/stretchr/testify/assert"
+)
+
+type mockDiaryService struct{}
+
+func (mockDiaryService) ListMine(userID uint, page, size int, status, now, from, to string, tagNames []string) (*common.Page[ListItem], error) {
+	return &common.Page[ListItem]{Content: []ListItem{{ID: 1, Status: "FINISHED"}}, TotalElements: 1, TotalPages: 1, Size: size, Number: page}, nil
+}
+func (mockDiaryService) Get(userID, id uint) (*EntryDTO, error) { return nil, errors.New("unused") }
+func (mockDiaryService) Create(userID uint, req UpsertRequest) (*EntryDTO, error) {
+	return &EntryDTO{ID: 1, Status: "PLANNED", UserID: userID, CreatedAt: time.Now().UTC().Format(time.RFC3339), UpdatedAt: time.Now().UTC().Format(time.RFC3339)}, nil
+}
+func (mockDiaryService) Update(userID, id uint, req UpsertRequest) (*EntryDTO, error) {
+	return nil, errors.New("unused")
+}
+func (mockDiaryService) Delete(userID, id uint) error { return nil }
+
+func TestGetDiaryEntriesSuccess(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+	router := gin.New()
+	router.GET("/diary/mine", func(c *gin.Context) {
+		c.Set("userID", uint(1))
+		NewHandler(mockDiaryService{}).ListMine(c)
+	})
+	rec := httptest.NewRecorder()
+	req := httptest.NewRequest(http.MethodGet, "/diary/mine?page=0&size=8", nil)
+	router.ServeHTTP(rec, req)
+
+	assert.Equal(t, http.StatusOK, rec.Code)
+	assert.Contains(t, rec.Body.String(), `"totalElements":1`)
+}
+
+func TestCreateDiaryEntrySuccess(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+	router := gin.New()
+	router.POST("/diary", func(c *gin.Context) {
+		c.Set("userID", uint(1))
+		NewHandler(mockDiaryService{}).Create(c)
+	})
+	body := `{"description":"Training #training","tags":["training"],"metrics":[]}`
+	req := httptest.NewRequest(http.MethodPost, "/diary", bytes.NewBufferString(body))
+	req.Header.Set("Content-Type", "application/json")
+	rec := httptest.NewRecorder()
+	router.ServeHTTP(rec, req)
+
+	assert.Equal(t, http.StatusCreated, rec.Code)
+	assert.Contains(t, rec.Body.String(), `"userId":1`)
+}

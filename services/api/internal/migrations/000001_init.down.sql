@@ -1,0 +1,12 @@
+DROP TABLE IF EXISTS general_foods;
+DROP TABLE IF EXISTS tag_chart_type_links;
+DROP TABLE IF EXISTS tag_metric_links;
+DROP TABLE IF EXISTS metric_name_unit_links;
+DROP TABLE IF EXISTS diary_entry_metric_values;
+DROP TABLE IF EXISTS diary_entry_metrics;
+DROP TABLE IF EXISTS dictionary_items;
+DROP TABLE IF EXISTS diary_entry_tags;
+DROP TABLE IF EXISTS tags;
+DROP TABLE IF EXISTS diary_entries;
+DROP TABLE IF EXISTS refresh_tokens;
+DROP TABLE IF EXISTS users;

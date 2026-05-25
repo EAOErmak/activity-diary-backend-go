@@ -1,7 +1,0 @@
-CREATE TABLE dictionary_item (
-    id BIGSERIAL PRIMARY KEY,
-    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    type VARCHAR(50) NOT NULL,
-    label VARCHAR(255) NOT NULL
-);

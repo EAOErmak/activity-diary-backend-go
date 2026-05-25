@@ -1,0 +1,41 @@
+package common
+
+import "math"
+
+type Page[T any] struct {
+	Content       []T   `json:"content"`
+	TotalElements int64 `json:"totalElements"`
+	TotalPages    int   `json:"totalPages"`
+	Size          int   `json:"size"`
+	Number        int   `json:"number"`
+}
+
+type PageResponse[T any] struct {
+	Items         []T   `json:"items"`
+	Page          int   `json:"page"`
+	Limit         int   `json:"limit"`
+	TotalElements int64 `json:"totalElements"`
+	TotalPages    int   `json:"totalPages"`
+	HasNext       bool  `json:"hasNext"`
+	HasPrevious   bool  `json:"hasPrevious"`
+}
+
+type Slice[T any] struct {
+	Content          []T  `json:"content"`
+	Number           int  `json:"number"`
+	Size             int  `json:"size"`
+	First            bool `json:"first"`
+	Last             bool `json:"last"`
+	NumberOfElements int  `json:"numberOfElements"`
+	Empty            bool `json:"empty"`
+}
+
+func TotalPages(total int64, limit int) int {
+	if limit <= 0 || total == 0 {
+		if total == 0 {
+			return 0
+		}
+		return 1
+	}
+	return int(math.Ceil(float64(total) / float64(limit)))
+}

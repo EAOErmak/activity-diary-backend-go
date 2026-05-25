@@ -1,0 +1,51 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: activity_diary
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d activity_diary"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  api:
+    build:
+      context: ./services/api
+    environment:
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_USER: postgres
+      DB_PASSWORD: postgres
+      DB_NAME: activity_diary
+      JWT_SECRET: super-secret-key
+      ACCESS_TOKEN_TTL_MINUTES: 60
+      REFRESH_TOKEN_TTL_HOURS: 72
+      ANALYTICS_SERVICE_URL: http://analytics:18081
+      MIGRATIONS_PATH: /app/internal/migrations
+    ports:
+      - "18080:18080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      analytics:
+        condition: service_started
+
+  analytics:
+    build:
+      context: ./services/analytics
+    environment:
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_USER: postgres
+      DB_PASSWORD: postgres
+      DB_NAME: activity_diary
+    ports:
+      - "18081:18081"
+    depends_on:
+      postgres:
+        condition: service_healthy

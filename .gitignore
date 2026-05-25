@@ -1,0 +1,24 @@
+# Go workspaces and modules
+go.work.sum
+
+# Go build and telemetry caches
+gocache/
+.gocache/
+gotmp/
+.gotmp/
+gotelemetry/
+.gotelemetry/
+
+# Binaries
+*.exe
+*.dll
+*.so
+*.dylib
+*.test
+*.out
+
+# Editor and OS noise
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/

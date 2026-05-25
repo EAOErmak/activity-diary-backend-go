@@ -1,0 +1,56 @@
+package dictionary
+
+import (
+	"bytes"
+	"net/http"
+	"net/http/httptest"
+	"testing"
+
+	"activitydiary/api/internal/common"
+
+	"github.com/gin-gonic/gin"
+	"github.com/stretchr/testify/assert"
+)
+
+type mockDictionaryService struct{}
+
+func (mockDictionaryService) ListAll() ([]ItemDTO, error) { return nil, nil }
+func (mockDictionaryService) ListMetricUnits(metricNameID uint, page, limit int, q string) (*common.PageResponse[map[string]interface{}], error) {
+	return nil, nil
+}
+func (mockDictionaryService) ListAdmin(itemType string, page, limit int, q string) (*common.PageResponse[ItemDTO], error) {
+	return &common.PageResponse[ItemDTO]{Items: []ItemDTO{{ID: 1, Type: "METRIC_NAME", Label: "pull ups", Active: true}}, Page: 0, Limit: 10, TotalElements: 1, TotalPages: 1}, nil
+}
+func (mockDictionaryService) Search(q string) ([]ItemDTO, error) { return nil, nil }
+func (mockDictionaryService) Create(req AdminUpsertRequest) (*ItemDTO, error) {
+	return &ItemDTO{ID: 1, Type: req.Type, Label: req.Label, Active: true}, nil
+}
+func (mockDictionaryService) Update(id uint, req AdminUpsertRequest) (*ItemDTO, error) {
+	return nil, nil
+}
+
+func TestAdminDictListRequiresAdmin(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+	router := gin.New()
+	router.GET("/admin/dict/:type", func(c *gin.Context) {
+		c.JSON(http.StatusForbidden, gin.H{"success": false, "message": "Admin access is required", "data": nil})
+	})
+	rec := httptest.NewRecorder()
+	req := httptest.NewRequest(http.MethodGet, "/admin/dict/METRIC_NAME", nil)
+	router.ServeHTTP(rec, req)
+
+	assert.Equal(t, http.StatusForbidden, rec.Code)
+}
+
+func TestCreateDictionaryItemSuccess(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+	router := gin.New()
+	router.POST("/admin/dict", NewHandler(mockDictionaryService{}).CreateAdmin)
+	req := httptest.NewRequest(http.MethodPost, "/admin/dict", bytes.NewBufferString(`{"type":"METRIC_NAME","label":"pull ups","allowedRole":null}`))
+	req.Header.Set("Content-Type", "application/json")
+	rec := httptest.NewRecorder()
+	router.ServeHTTP(rec, req)
+
+	assert.Equal(t, http.StatusCreated, rec.Code)
+	assert.Contains(t, rec.Body.String(), `"label":"pull ups"`)
+}

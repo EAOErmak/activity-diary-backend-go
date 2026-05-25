@@ -1,0 +1,39 @@
+{
+  "info": {
+    "name": "ActivityDiaryGo",
+    "_postman_id": "c0d40f3e-4b4e-4a57-8c59-activity-diary-go",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://127.0.0.1:18080/api" },
+    { "key": "accessToken", "value": "" },
+    { "key": "refreshToken", "value": "" },
+    { "key": "tagId", "value": "1" },
+    { "key": "diaryId", "value": "1" },
+    { "key": "metricNameId", "value": "1" },
+    { "key": "metricUnitId", "value": "2" },
+    { "key": "dictionaryItemId", "value": "10" }
+  ],
+  "item": [
+    { "name": "1 Register User", "request": { "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }], "url": "{{baseUrl}}/auth/register", "body": { "mode": "raw", "raw": "{\"email\":\"user@example.com\",\"username\":\"user\",\"password\":\"password\",\"fullName\":\"User Example\"}" } } },
+    { "name": "2 Login", "request": { "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }], "url": "{{baseUrl}}/auth/login", "body": { "mode": "raw", "raw": "{\"email\":\"admin@example.com\",\"password\":\"admin123\"}" } } },
+    { "name": "3 Refresh Token", "request": { "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }], "url": "{{baseUrl}}/auth/refresh", "body": { "mode": "raw", "raw": "{\"refreshToken\":\"{{refreshToken}}\"}" } } },
+    { "name": "4 Get Current User", "request": { "method": "GET", "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }], "url": "{{baseUrl}}/user/me" } },
+    { "name": "5 Create Metric Name", "request": { "method": "POST", "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }, { "key": "Content-Type", "value": "application/json" }], "url": "{{baseUrl}}/admin/dict", "body": { "mode": "raw", "raw": "{\"type\":\"METRIC_NAME\",\"label\":\"pull ups\",\"allowedRole\":null}" } } },
+    { "name": "6 Create Metric Unit", "request": { "method": "POST", "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }, { "key": "Content-Type", "value": "application/json" }], "url": "{{baseUrl}}/admin/dict", "body": { "mode": "raw", "raw": "{\"type\":\"METRIC_UNIT\",\"label\":\"reps\",\"allowedRole\":null}" } } },
+    { "name": "7 List Metric Names", "request": { "method": "GET", "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }], "url": "{{baseUrl}}/admin/dict/METRIC_NAME?page=0&limit=10&q=pull" } },
+    { "name": "8 List Metric Units", "request": { "method": "GET", "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }], "url": "{{baseUrl}}/admin/dict/METRIC_UNIT?page=0&limit=10&q=reps" } },
+    { "name": "9 Create Metric Link", "request": { "method": "POST", "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }, { "key": "Content-Type", "value": "application/json" }], "url": "{{baseUrl}}/admin/metric-links", "body": { "mode": "raw", "raw": "{\"metricNameId\":1,\"metricUnitId\":2}" } } },
+    { "name": "10 Get Metric Units By Metric Name", "request": { "method": "GET", "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }], "url": "{{baseUrl}}/admin/metric-links/metric-name/1/units?page=0&limit=10" } },
+    { "name": "11 Create Tag", "request": { "method": "POST", "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }, { "key": "Content-Type", "value": "application/json" }], "url": "{{baseUrl}}/admin/tags", "body": { "mode": "raw", "raw": "{\"name\":\"training\"}" } } },
+    { "name": "12 Approve Tag", "request": { "method": "POST", "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }], "url": "{{baseUrl}}/admin/tags/{{tagId}}/approve" } },
+    { "name": "13 Link Tag Metrics", "request": { "method": "PUT", "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }, { "key": "Content-Type", "value": "application/json" }], "url": "{{baseUrl}}/admin/tags/{{tagId}}/metrics", "body": { "mode": "raw", "raw": "{\"metricNameIds\":[1,2,3]}" } } },
+    { "name": "14 Link Tag Chart Type", "request": { "method": "POST", "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }, { "key": "Content-Type", "value": "application/json" }], "url": "{{baseUrl}}/admin/tag-chart-types", "body": { "mode": "raw", "raw": "{\"tagId\":1,\"chartType\":\"TRAINING_RAW\"}" } } },
+    { "name": "15 Get Tags", "request": { "method": "GET", "url": "{{baseUrl}}/tags?q=training" } },
+    { "name": "16 Create Diary Entry", "request": { "method": "POST", "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }, { "key": "Content-Type", "value": "application/json" }], "url": "{{baseUrl}}/diary", "body": { "mode": "raw", "raw": "{\"whenStarted\":\"2026-05-25T10:00:00Z\",\"whenEnded\":\"2026-05-25T11:00:00Z\",\"mood\":4,\"description\":\"Training #training\",\"tags\":[\"training\"],\"metrics\":[{\"metricTypeId\":1,\"values\":[{\"unitId\":2,\"value\":10}]}]}" } } },
+    { "name": "17 Get Diary Entries", "request": { "method": "GET", "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }], "url": "{{baseUrl}}/diary/mine?page=0&size=8&status=FINISHED" } },
+    { "name": "18 Get Diary Entry By ID", "request": { "method": "GET", "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }], "url": "{{baseUrl}}/diary/{{diaryId}}" } },
+    { "name": "19 Get Analytics Chart", "request": { "method": "GET", "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }], "url": "{{baseUrl}}/analytics/charts?tagId=1&chartType=TRAINING_RAW&dateFrom=2026-05-01T00:00:00Z&dateTo=2026-05-31T23:59:59Z" } },
+    { "name": "20 Create General Food", "request": { "method": "POST", "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }, { "key": "Content-Type", "value": "application/json" }], "url": "{{baseUrl}}/admin/general-foods", "body": { "mode": "raw", "raw": "{\"dictionaryItemId\":10,\"protein\":2.7,\"fat\":0.3,\"carbs\":28.0,\"callories\":1.3}" } } }
+  ]
+}
