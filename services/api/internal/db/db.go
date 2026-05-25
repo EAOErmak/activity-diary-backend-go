@@ -2,6 +2,7 @@ package db
 
 import (
 	"database/sql"
+	"errors"
 	"fmt"
 	"time"
 
@@ -94,7 +95,15 @@ func seedReferenceData(database *gorm.DB) error {
 		{Type: "SUB_CATEGORY", Label: "protein", Active: true},
 	}
 	for _, item := range names {
-		if err := database.Where("type = ? AND label = ?", item.Type, item.Label).FirstOrCreate(&models.DictionaryItem{}, item).Error; err != nil {
+		var existing models.DictionaryItem
+		err := database.Where("type = ? AND label = ?", item.Type, item.Label).First(&existing).Error
+		if err == nil {
+			continue
+		}
+		if !errors.Is(err, gorm.ErrRecordNotFound) {
+			return err
+		}
+		if err := database.Create(&item).Error; err != nil {
 			return err
 		}
 	}
@@ -106,8 +115,17 @@ func seedReferenceData(database *gorm.DB) error {
 	if err := database.Where("type = ? AND label = ?", "METRIC_UNIT", "reps").First(&metricUnit).Error; err != nil {
 		return err
 	}
-	if err := database.Where("name = ?", "training").FirstOrCreate(&models.Tag{}, models.Tag{Name: "training", Status: "APPROVED"}).Error; err != nil {
-		return err
+	{
+		var existingTag models.Tag
+		err := database.Where("name = ?", "training").First(&existingTag).Error
+		if err != nil {
+			if !errors.Is(err, gorm.ErrRecordNotFound) {
+				return err
+			}
+			if err := database.Create(&models.Tag{Name: "training", Status: "APPROVED"}).Error; err != nil {
+				return err
+			}
+		}
 	}
 	var tag models.Tag
 	if err := database.Where("name = ?", "training").First(&tag).Error; err != nil {

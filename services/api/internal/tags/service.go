@@ -1,6 +1,7 @@
 package tags
 
 import (
+	"errors"
 	"net/http"
 	"strconv"
 	"strings"
@@ -47,7 +48,15 @@ func (s *Service) EnsureTags(names []string) error {
 		if trimmed == "" {
 			continue
 		}
-		if err := s.db.Where("LOWER(name) = LOWER(?)", trimmed).FirstOrCreate(&models.Tag{}, models.Tag{Name: trimmed, Status: "PROPOSED"}).Error; err != nil {
+		var tag models.Tag
+		err := s.db.Where("LOWER(name) = LOWER(?)", trimmed).First(&tag).Error
+		if err == nil {
+			continue
+		}
+		if !errors.Is(err, gorm.ErrRecordNotFound) {
+			return err
+		}
+		if err := s.db.Create(&models.Tag{Name: trimmed, Status: "PROPOSED"}).Error; err != nil {
 			return err
 		}
 	}
